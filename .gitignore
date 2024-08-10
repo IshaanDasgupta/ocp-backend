@@ -1,0 +1,46 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+
+# Testing
+coverage/
+.nyc_output/
+
+# Build
+build/
+dist/
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+
+# Editor-specific files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Miscellaneous
+*.bak
+*.backup
+*.old
+
+# Typescript
+*.tsbuildinfo
+
+# pm2
+p
