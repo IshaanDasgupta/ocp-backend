@@ -2,7 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import {connectDB} from './db/connect.js';
-import authRoutes from './routes/auth.js';
+// import authRoutes from './routes/auth.js';
 import problemRoutes from './routes/problems.js';
 import submissionRoutes from './routes/submissions.js';
 import cors from 'cors';
@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.json({ type: "application/json" }));
 
-app.use('/auth',authRoutes);
+// app.use('/auth',authRoutes);
 app.use('/problems',problemRoutes);
 app.use('/submission',submissionRoutes);
 
