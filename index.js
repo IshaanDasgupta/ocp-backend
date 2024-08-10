@@ -14,6 +14,7 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.json({ type: "application/json" }));
+app.use(cors());
 
 // app.use('/auth',authRoutes);
 app.use('/problems',problemRoutes);
