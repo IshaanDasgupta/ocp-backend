@@ -1,11 +1,14 @@
-import express from "express";
 import { Router } from "express";
-import { addSubmission, check } from "../controllers/submissions.js";
+import {
+    create_submission,
+    get_submission,
+    submission_status,
+} from "../controllers/submissions.js";
 
 const router = Router();
 
-router.get('/')
-router.post('/add',addSubmission)
-router.post('/check',check);
+router.get("/:sumbission_id", get_submission);
+router.get("/check", submission_status);
+router.post("/", create_submission);
 
 export default router;
