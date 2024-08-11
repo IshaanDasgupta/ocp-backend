@@ -1,30 +1,65 @@
-import {Contest} from '../models/Contest.js';
+import { Contest } from "../models/Contest.js";
 
-export const createContest = async (req, res) => {
+export const get_all_contests = async (req, res, next) => {
     try {
-        const { title, start_time, duration, problems } = req.body;
-
-        const contest = new Contest({
-            title,
-            start_time,
-            duration,
-            problems,
-        });
-
-        await contest.save();
-        res.status(201).json(contest);
-    } catch (error) {
-        console.error('Error creating contest:', error);
-        res.status(500).json({ error: 'Server error' });
+        const contests = await Contest.find()
+            .populate("problems.problem")
+            .populate("creator_id");
+        res.status(200).json(contests);
+    } catch (err) {
+        next(err);
     }
 };
 
-export const getAllContests = async (req, res) => {
+export const get_contest_by_id = async (req, res, next) => {
     try {
-        const contests = await Contest.find().populate('problems.problem').populate('creator_id');
-        res.status(200).json(contests);
+        const contest = await Contest.findById(req.params.contest_id)
+            .populate("problems.problem")
+            .populate("creator_id");
+
+        if (!contest) {
+            return next(create_error(404, "contest not found"));
+        }
+
+        res.status(200).json(contest);
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const create_contest = async (req, res, next) => {
+    try {
+        const contest = new Contest(req.body);
+        await contest.save();
+
+        res.status(201).json(contest);
     } catch (error) {
-        console.error('Error fetching contests:', error);
-        res.status(500).json({ error: 'Server error' });
+        next(error);
+    }
+};
+
+export const update_contest = async (req, res, next) => {
+    try {
+        const contest = await Contest.findByIdAndUpdate(
+            req.params.contest_id,
+            req.body
+        )
+            .populate("problems.problem")
+            .populate("creator_id");
+
+        res.status(200).json(contest);
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const delete_contest = async (req, res, next) => {
+    try {
+        await Contest.findByIdAndDelete(req.params.contest_id);
+        res.status(200).json({
+            contest_id: req.params.contest_id,
+        });
+    } catch (err) {
+        next(err);
     }
 };

@@ -1,11 +1,18 @@
-import express from "express";
 import { Router } from "express";
-import { addProblem, listProblems,getProblemById } from "../controllers/problems.js";
+import {
+    list_problems,
+    get_problem_by_id,
+    create_problem,
+    update_problem,
+    delete_problem,
+} from "../controllers/problems.js";
 
 const router = Router();
 
-router.get('/',listProblems)
-router.post('/add',addProblem)
-router.get('/problems/:id', getProblemById);
+router.get("/", list_problems);
+router.get("/problem/:problem_id", get_problem_by_id);
+router.post("/", create_problem);
+router.put("/:problem_id", update_problem);
+router.delete("/:problem_id", delete_problem);
 
 export default router;

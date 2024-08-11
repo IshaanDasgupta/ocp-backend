@@ -1,10 +1,16 @@
-import express from 'express';
-import { createContest, getAllContests } from '../controllers/contests.js';
+import { Router } from "express";
+import {
+    create_contest,
+    get_all_contests,
+    get_contest_by_id,
+} from "../controllers/contests.js";
 
-const router = express.Router();
+const router = Router();
 
-router.post('/add', createContest);
-
-router.get('/', getAllContests);
+router.get("/", get_all_contests);
+router.get("/contest/:contest_id", get_contest_by_id);
+router.post("/", create_contest);
+router.put("/:contest_id", update_contest);
+router.delete("/:contest_id", delete_contest);
 
 export default router;
