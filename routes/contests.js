@@ -1,9 +1,10 @@
-import express from "express";
-import { Router } from "express";
+import express from 'express';
+import { createContest, getAllContests } from '../controllers/contests.js';
 
-const router = Router();
+const router = express.Router();
 
-router.get('/contest')
-router.post('/add-contest')
+router.post('/add', createContest);
+
+router.get('/', getAllContests);
 
 export default router;
