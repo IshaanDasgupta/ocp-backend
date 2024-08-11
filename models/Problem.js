@@ -1,11 +1,17 @@
 import mongoose from "mongoose";
-import { TestCaseSchema } from "./Submission.js";
 
 const problem_schema = new mongoose.Schema({
     title: { type: String, required: true },
     desc: { type: String, required: true },
     constraints: { type: String },
-    testcases: [TestCaseSchema],
+    testcases: [
+        {
+            input: { type: String, required: true },
+            expected_output: { type: String, required: true },
+            is_hidden: { type: Boolean },
+            score: { type: Number },
+        },
+    ],
     time_limit: { type: Number },
     memory_limit: { type: Number },
     is_public: { type: Boolean },
