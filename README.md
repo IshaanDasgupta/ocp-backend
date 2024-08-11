@@ -7,7 +7,7 @@ This is the backend for the Online coding platform application. It provides APIs
 ## Installation
 
 1. Clone the repository:
-   git clone https://github.com/your-username/codearena-backend.git
+   git clone https://github.com/kshitiz1108/Tally-OCP-backend.git
    cd Tally-OCP-backend
    
 2. run npm install on the terminal
