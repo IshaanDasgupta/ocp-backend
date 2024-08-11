@@ -1,4 +1,5 @@
 import { Problem } from "../models/Problem.js";
+import { create_error } from "../utils/error.js";
 
 export const list_problems = async (req, res, next) => {
     try {
@@ -11,7 +12,7 @@ export const list_problems = async (req, res, next) => {
 
 export const get_problem_by_id = async (req, res, next) => {
     try {
-        const problem = await Problem.findById(req.params.problem_id);
+        const problem = await Problem.findById(req.query.problem_id);
 
         if (!problem) {
             return next(create_error(404, "problem not found"));
@@ -45,7 +46,7 @@ export const create_problem = async (req, res, next) => {
 export const update_problem = async (req, res, next) => {
     try {
         const contest = await Problem.findByIdAndUpdate(
-            req.params.problem_id,
+            req.query.problem_id,
             req.body
         ).populate("creator_id");
 
@@ -57,9 +58,9 @@ export const update_problem = async (req, res, next) => {
 
 export const delete_problem = async (req, res, next) => {
     try {
-        await Problem.findByIdAndDelete(req.params.problem_id);
+        await Problem.findByIdAndDelete(req.query.problem_id);
         res.status(200).json({
-            problem_id: req.params.problem_id,
+            problem_id: req.query.problem_id,
         });
     } catch (err) {
         next(err);

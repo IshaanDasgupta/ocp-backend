@@ -3,6 +3,8 @@ import {
     create_contest,
     get_all_contests,
     get_contest_by_id,
+    update_contest,
+    delete_contest,
 } from "../controllers/contests.js";
 
 const router = Router();

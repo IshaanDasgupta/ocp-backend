@@ -7,7 +7,7 @@ import {
 
 const router = Router();
 
-router.get("/:sumbission_id", get_submission);
+router.get("/", get_submission);
 router.get("/check", submission_status);
 router.post("/", create_submission);
 

@@ -1,4 +1,5 @@
 import { Contest } from "../models/Contest.js";
+import { create_error } from "../utils/error.js";
 
 export const get_all_contests = async (req, res, next) => {
     try {
@@ -13,7 +14,7 @@ export const get_all_contests = async (req, res, next) => {
 
 export const get_contest_by_id = async (req, res, next) => {
     try {
-        const contest = await Contest.findById(req.params.contest_id)
+        const contest = await Contest.findById(req.query.contest_id)
             .populate("problems.problem")
             .populate("creator_id");
 
@@ -41,7 +42,7 @@ export const create_contest = async (req, res, next) => {
 export const update_contest = async (req, res, next) => {
     try {
         const contest = await Contest.findByIdAndUpdate(
-            req.params.contest_id,
+            req.query.contest_id,
             req.body
         )
             .populate("problems.problem")
@@ -55,9 +56,9 @@ export const update_contest = async (req, res, next) => {
 
 export const delete_contest = async (req, res, next) => {
     try {
-        await Contest.findByIdAndDelete(req.params.contest_id);
+        await Contest.findByIdAndDelete(req.query.contest_id);
         res.status(200).json({
-            contest_id: req.params.contest_id,
+            contest_id: req.query.contest_id,
         });
     } catch (err) {
         next(err);

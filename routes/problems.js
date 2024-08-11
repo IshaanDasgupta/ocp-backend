@@ -9,10 +9,10 @@ import {
 
 const router = Router();
 
-router.get("/", list_problems);
-router.get("/problem/:problem_id", get_problem_by_id);
+router.get("/all", list_problems);
+router.get("/", get_problem_by_id);
 router.post("/", create_problem);
-router.put("/:problem_id", update_problem);
-router.delete("/:problem_id", delete_problem);
+router.put("/", update_problem);
+router.delete("/", delete_problem);
 
 export default router;
