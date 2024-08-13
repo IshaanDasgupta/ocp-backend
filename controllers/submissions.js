@@ -1,15 +1,54 @@
 import { Problem } from "../models/Problem.js";
 import { Submission } from "../models/Submission.js";
 import { rabbitMQ_channel } from "../index.js";
+import { create_error } from "../utils/error.js";
+import { Playground_Submission } from "../models/Playground_Submission.js";
 
 export const get_submission = async (req, res, next) => {
     try {
-        const submission = await Submission.findById(req.query.sumbission_id);
-
-        if (submission.status === "pending") {
-            return res.status(200).json({ status: submission.status });
+        if (!req.query.sumbission_id) {
+            return next(create_error(500, "specify the sumbission_id"));
         }
-        res.status(200).json(submission);
+
+        if (!req.query.type) {
+            return next(create_error(500, "specify the submission type"));
+        }
+
+        if (req.query.type === "playground_submission") {
+            const submission = await Playground_Submission.findById(
+                req.query.sumbission_id
+            );
+
+            if (!submission) {
+                return next(create_error(404, "invalid submission id "));
+            }
+
+            if (submission.status === "pending") {
+                return res.status(200).json({ status: submission.status });
+            }
+            res.status(200).json(submission);
+            return;
+        }
+
+        if (req.query.type === "problem_submission") {
+            const submission = await Submission.findById(
+                req.query.sumbission_id
+            );
+
+            if (!submission) {
+                return next(create_error(404, "invalid submission id "));
+            }
+
+            if (submission.status === "pending") {
+                return res.status(200).json({ status: submission.status });
+            }
+            res.status(200).json(submission);
+            return;
+        }
+
+        return next(
+            create_error(500, `submission type ${req.query.type} not supported`)
+        );
     } catch (error) {
         next(error);
     }
@@ -18,6 +57,11 @@ export const get_submission = async (req, res, next) => {
 export const submission_status = async (req, res, next) => {
     try {
         const submission = await Submission.findById(req.query.sumbission_id);
+
+        if (!submission) {
+            return next(create_error(404, "invalid submission id "));
+        }
+
         res.status(201).json({
             status: submission.status,
         });
@@ -69,7 +113,40 @@ export const create_submission = async (req, res, next) => {
             Buffer.from(
                 JSON.stringify({
                     submission_id: savedSubmission._id,
-                    language: savedSubmission.language,
+                    type: "problem_submission",
+                })
+            )
+        );
+
+        res.status(201).json(savedSubmission);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const create_playground_submission = async (req, res, next) => {
+    try {
+        const initial_configurations = {
+            time_taken: null,
+            memory_taken: null,
+            status: "pending",
+            output: null,
+        };
+
+        const playground_submission = new Playground_Submission({
+            ...req.body,
+            ...initial_configurations,
+        });
+
+        const savedSubmission = await playground_submission.save();
+
+        var queue = "submission_requests";
+        rabbitMQ_channel.sendToQueue(
+            queue,
+            Buffer.from(
+                JSON.stringify({
+                    submission_id: savedSubmission._id,
+                    type: "playground_submission",
                 })
             )
         );
