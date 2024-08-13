@@ -23,7 +23,7 @@ export const submission_schema = new mongoose.Schema(
         result: { type: String, enum: ["AC", "WA", "TLE", "MLE", "RTE"] },
         status: {
             type: String,
-            enum: ["pending", "submitted"],
+            enum: ["pending", "submitted", "failed"],
             required: true,
         },
         test_cases: [
@@ -43,6 +43,7 @@ export const submission_schema = new mongoose.Schema(
             },
         ],
         total_score: { type: Number },
+        error: { type: String },
     },
     {
         timestamps: { createdAt: "addedAt" },
