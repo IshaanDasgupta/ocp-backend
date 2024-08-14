@@ -3,6 +3,61 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { create_error } from "../utils/error.js";
 
+
+export const get_user_data = async(req,res,next)=>{
+    try{
+        if (!req.query.user_id) {
+            return next(create_error(500, "specify the user id"));
+        }
+        const user_id = req.query.user_id;
+        const user = await User.findById(user_id).populate('solved_problems','title difficulty').populate("submissions",'problem_id');
+        const problem_count = {
+            Easy: 0,
+            Medium: 0,
+            Hard: 0,
+        };
+        user.solved_problems.forEach(problem => {
+            const difficulty = problem.difficulty;
+            if (difficulty) {
+                problem_count[difficulty]++;
+              }
+          })
+        res.status(200).json({
+            user,
+            metrics: {
+                problem_count
+            }
+        });
+    }
+    catch(err){
+        res.status(500).json({
+            message: err.message,
+            stack: err.stack
+        })
+    }
+}
+
+
+export const add_solved_problem =async(req,res,next)=>{
+    try{
+        const {user_id , problem_id} = req.body;
+        const user = await User.findById(user_id);
+        console.log(user);
+        console.log(user.solved_problems.includes(problem_id));
+        if(!user.solved_problems.includes(problem_id)){
+            user.solved_problems.push(problem_id);
+            await User.findByIdAndUpdate(user_id,user);
+        }
+        res.status(200).json(user);
+    }
+    catch(err){
+        res.status(500).json({
+            message: err.message,
+            stack: err.stack
+        })
+    }
+}
+
 export const register_user = async (req, res, next) => {
     const { password, email } = req.body;
     try {
