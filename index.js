@@ -21,7 +21,6 @@ app.use("/user", authRoutes);
 app.use("/problem", problemRoutes);
 app.use("/submission", submissionRoutes);
 app.use("/contest", contestRoutes);
-
 app.get("/healthcheck", (req, res) => {
     res.status(200).json("healthcheck");
 });

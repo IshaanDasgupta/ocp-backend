@@ -9,6 +9,7 @@ const problem_schema = new mongoose.Schema({
     testcases: [
         {
             input: { type: String, required: true },
+            expected_output: { type: String, required: true },
             is_hidden: { type: Boolean },
             expected_output: { type: String },
             explanation: { type: String },
