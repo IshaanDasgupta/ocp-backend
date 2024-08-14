@@ -34,7 +34,6 @@ export const submission_schema = new mongoose.Schema(
                     output: { type: String },
                     is_hidden: {
                         type: Boolean,
-                        required: true,
                         default: false,
                     },
                     score: { type: Number, default: 0 },
