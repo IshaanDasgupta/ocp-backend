@@ -16,7 +16,7 @@ export const playground_submission_schema = new mongoose.Schema(
             required: true,
         },
 
-        input: { type: String, required: true },
+        input: { type: String},
         output: { type: String },
         error: { type: String },
     },
