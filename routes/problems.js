@@ -6,11 +6,12 @@ import {
     update_problem,
     delete_problem,
 } from "../controllers/problems.js";
+import { verify_token } from "../controllers/auth.js";
 
 const router = Router();
 
-router.get("/all", list_problems);
-router.get("/", get_problem_by_id);
+router.get("/all",verify_token , list_problems);
+router.get("/", verify_token , get_problem_by_id);
 router.post("/", create_problem);
 router.put("/", update_problem);
 router.delete("/", delete_problem);

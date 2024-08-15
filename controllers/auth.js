@@ -100,7 +100,8 @@ export const login_user = async (req, res, next) => {
             return next(create_error(404, "user not found"));
         }
 
-        const isPasswordValid = await bcrypt.compare(user.password, password);
+        const isPasswordValid = await bcrypt.compare(password,user.password);
+        console.log(isPasswordValid)
         if (!isPasswordValid) {
             return next(create_error(404, "invalid username or password"));
         }
@@ -128,10 +129,31 @@ export const verify_token = (req, res, next) => {
     }
 
     try {
-        const decoded_id = jwt.verify(token, JWT_SECRET);
-        req.user_id = decoded_id;
+        const decoded_id = jwt.verify(token, process.env.JWT_SECRET);
         next();
     } catch (err) {
         return next(create_error(401, "invalid token"));
     }
 };
+
+export const get_user_id = async(req,res,next)=>{
+    const token = req.header("Authorization").replace("Bearer ", "");
+    console.log(token)
+    if (!token) {
+        return res.status(401).json({ message: "no token provided" });
+    }
+    try {
+        const decoded_id = jwt.verify(token, process.env.JWT_SECRET);
+        console.log(decoded_id);
+        const user = await User.findById(decoded_id.user_id);
+        console.log(user);
+        if(!user){
+            res.status(404).json({message: "no such user"});
+        }
+        return res.status(200).json({
+            user_id: user._id
+        })
+    } catch (err) {
+        return next(create_error(401, err.message));
+    }
+}
