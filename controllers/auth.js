@@ -130,6 +130,7 @@ export const verify_token = (req, res, next) => {
 
     try {
         const decoded_id = jwt.verify(token, process.env.JWT_SECRET);
+        req.user_id = decoded_id;
         next();
     } catch (err) {
         return next(create_error(401, "invalid token"));

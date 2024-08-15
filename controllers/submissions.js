@@ -6,17 +6,17 @@ import { Playground_Submission } from "../models/Playground_Submission.js";
 
 export const get_submission = async (req, res, next) => {
     try {
-        if (!req.query.sumbission_id) {
-            return next(create_error(500, "specify the sumbission_id"));
+        if (!req.query.submission_id) {
+            return next(create_error(500, "specify the submission_id"));
         }
-
+        
         if (!req.query.type) {
             return next(create_error(500, "specify the submission type"));
         }
 
         if (req.query.type === "playground_submission") {
             const submission = await Playground_Submission.findById(
-                req.query.sumbission_id
+                req.query.submission_id
             );
 
             if (!submission) {
@@ -32,7 +32,7 @@ export const get_submission = async (req, res, next) => {
 
         if (req.query.type === "problem_submission") {
             const submission = await Submission.findById(
-                req.query.sumbission_id
+                req.query.submission_id
             );
 
             if (!submission) {
@@ -56,7 +56,7 @@ export const get_submission = async (req, res, next) => {
 
 export const submission_status = async (req, res, next) => {
     try {
-        const submission = await Submission.findById(req.query.sumbission_id);
+        const submission = await Submission.findById(req.query.submission_id);
 
         if (!submission) {
             return next(create_error(404, "invalid submission id "));
@@ -156,3 +156,43 @@ export const create_playground_submission = async (req, res, next) => {
         next(error);
     }
 };
+
+export const delete_playground_submission = async(req,res,next)=>{
+    try{
+        const {submission_id} = req.query;
+        console.log(req.query);
+        const deleted_submission = await Playground_Submission.findByIdAndDelete(submission_id);
+        if (deleted_submission) {
+            res.status(200).json({
+                message: "Successfully deleted",
+            });
+        } else {
+            res.status(404).json({
+                message: "Submission not found",
+            });
+        }
+    }
+    catch(error){
+        next(error);
+    }
+}
+
+export const delete_submission = async(req,res,next)=>{
+    try{
+        const {submission_id} = req.query;
+        console.log(req.query);
+        const deleted_submission = await Submission.findByIdAndDelete(submission_id);
+        if (deleted_submission) {
+            res.status(200).json({
+                message: "Successfully deleted",
+            });
+        } else {
+            res.status(404).json({
+                message: "Submission not found",
+            });
+        }
+    }
+    catch(error){
+        next(error);
+    }
+}
