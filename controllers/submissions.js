@@ -9,7 +9,7 @@ export const get_submission = async (req, res, next) => {
         if (!req.query.submission_id) {
             return next(create_error(500, "specify the submission_id"));
         }
-        
+
         if (!req.query.type) {
             return next(create_error(500, "specify the submission type"));
         }
@@ -24,7 +24,9 @@ export const get_submission = async (req, res, next) => {
             }
 
             if (submission.status === "pending") {
-                return res.status(200).json({ status: submission.status });
+                return res
+                    .status(200)
+                    .json({ sucess: true, status: submission.status });
             }
             res.status(200).json(submission);
             return;
@@ -40,7 +42,9 @@ export const get_submission = async (req, res, next) => {
             }
 
             if (submission.status === "pending") {
-                return res.status(200).json({ status: submission.status });
+                return res
+                    .status(200)
+                    .json({ sucess: true, status: submission.status });
             }
             res.status(200).json(submission);
             return;
@@ -54,27 +58,12 @@ export const get_submission = async (req, res, next) => {
     }
 };
 
-export const submission_status = async (req, res, next) => {
-    try {
-        const submission = await Submission.findById(req.query.submission_id);
-
-        if (!submission) {
-            return next(create_error(404, "invalid submission id "));
-        }
-
-        res.status(201).json({
-            status: submission.status,
-        });
-    } catch (error) {
-        next(error);
-    }
-};
-
 export const create_submission = async (req, res, next) => {
     try {
-        let { problem_id, type } = req.body;
+        const { problem_id, type } = req.body;
 
         const initial_configurations = {
+            user_id: req.user.user_id,
             time_taken: null,
             memory_taken: null,
             result: null,
@@ -98,6 +87,8 @@ export const create_submission = async (req, res, next) => {
             });
 
             initial_configurations.test_cases = test_cases;
+        } else {
+            initial_configurations.throwaway = true;
         }
 
         const submission = new Submission({
@@ -118,15 +109,20 @@ export const create_submission = async (req, res, next) => {
             )
         );
 
-        res.status(201).json(savedSubmission);
+        res.status(201).json({
+            sucess: true,
+            message: "submission created",
+            submission_id: submission._id,
+        });
     } catch (error) {
+        console.log(error);
         next(error);
     }
 };
 
 export const create_playground_submission = async (req, res, next) => {
     try {
-        const initial_configurations = {
+        let initial_configurations = {
             time_taken: null,
             memory_taken: null,
             status: "pending",
@@ -157,42 +153,60 @@ export const create_playground_submission = async (req, res, next) => {
     }
 };
 
-export const delete_playground_submission = async(req,res,next)=>{
-    try{
-        const {submission_id} = req.query;
-        console.log(req.query);
-        const deleted_submission = await Playground_Submission.findByIdAndDelete(submission_id);
-        if (deleted_submission) {
-            res.status(200).json({
-                message: "Successfully deleted",
-            });
-        } else {
-            res.status(404).json({
-                message: "Submission not found",
-            });
-        }
-    }
-    catch(error){
-        next(error);
-    }
-}
+export const delete_playground_submission = async (req, res, next) => {
+    try {
+        const { submission_id } = req.query;
+        const deleted_submission =
+            await Playground_Submission.findByIdAndDelete(submission_id);
 
-export const delete_submission = async(req,res,next)=>{
-    try{
-        const {submission_id} = req.query;
-        console.log(req.query);
-        const deleted_submission = await Submission.findByIdAndDelete(submission_id);
-        if (deleted_submission) {
-            res.status(200).json({
-                message: "Successfully deleted",
-            });
-        } else {
-            res.status(404).json({
-                message: "Submission not found",
-            });
+        if (!deleted_submission) {
+            next(create_error(404, "submission not found"));
         }
-    }
-    catch(error){
+
+        res.status(200).json({
+            message: "successfully deleted submission",
+        });
+    } catch (error) {
         next(error);
     }
-}
+};
+
+export const delete_submission = async (req, res, next) => {
+    try {
+        const { submission_id } = req.query;
+        console.log(submission_id);
+
+        const submission = await Submission.findById(submission_id);
+        if (!submission) {
+            next(create_error(404, "submission not found"));
+        }
+
+        console.log(submission.user_id, req.user.user_id);
+
+        if (req.user.user_id != submission.user_id) {
+            next(
+                create_error(
+                    404,
+                    "not authorized to delete this submission. you must be the owner of the submission inorder to delete it"
+                )
+            );
+        }
+
+        if (submission.type == "submit") {
+            next(
+                create_error(
+                    400,
+                    "submissions with type 'submit' cannot be deleted"
+                )
+            );
+        }
+
+        await Submission.findByIdAndDelete(submission_id);
+
+        res.status(200).json({
+            message: "successfully deleted submission",
+        });
+    } catch (error) {
+        next(error);
+    }
+};
