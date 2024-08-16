@@ -3,60 +3,82 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { create_error } from "../utils/error.js";
 
-
-export const get_user_data = async(req,res,next)=>{
-    try{
-        if (!req.query.user_id) {
+export const get_user_data = async (req, res, next) => {
+    try {
+        if (!req.user.user_id) {
             return next(create_error(500, "specify the user id"));
         }
-        const user_id = req.query.user_id;
-        const user = await User.findById(user_id).populate('solved_problems','title difficulty').populate("submissions",'problem_id');
+
+        const user_id = req.user.user_id;
+        const user = await User.findById(user_id)
+            .populate("solved_problems", "title difficulty tags")
+            .populate("submissions", "problem_id language result status");
         const problem_count = {
             Easy: 0,
             Medium: 0,
             Hard: 0,
         };
-        user.solved_problems.forEach(problem => {
-            const difficulty = problem.difficulty;
-            if (difficulty) {
-                problem_count[difficulty]++;
-              }
-          })
+        const language_count = {};
+        const tag_count = {};
+        const accuracy_count = {
+            correct: 0,
+            incorrect: 0,
+        };
+
+        user.solved_problems.forEach((problem) => {
+            problem_count[problem.difficulty]++;
+
+            problem.tags.forEach((tag) => {
+                tag_count[tag] ? (tag_count[tag] += 1) : (tag_count[tag] = 1);
+            });
+        });
+
+        user.submissions.forEach((submission) => {
+            if (submission.status === "submitted") {
+                if (submission.result === "AC") {
+                    language_count[submission.language]
+                        ? (language_count[submission.language] += 1)
+                        : (language_count[submission.language] = 1);
+                    accuracy_count.correct += 1;
+                } else {
+                    accuracy_count.incorrect += 1;
+                }
+            }
+        });
+
         res.status(200).json({
             user,
             metrics: {
-                problem_count
-            }
+                problem_count,
+                language_count,
+                tag_count,
+                accuracy_count,
+            },
         });
+    } catch (err) {
+        console.log(err);
+        next(err);
     }
-    catch(err){
-        res.status(500).json({
-            message: err.message,
-            stack: err.stack
-        })
-    }
-}
+};
 
-
-export const add_solved_problem =async(req,res,next)=>{
-    try{
-        const {user_id , problem_id} = req.body;
+export const add_solved_problem = async (req, res, next) => {
+    try {
+        const { user_id, problem_id } = req.body;
         const user = await User.findById(user_id);
         console.log(user);
         console.log(user.solved_problems.includes(problem_id));
-        if(!user.solved_problems.includes(problem_id)){
+        if (!user.solved_problems.includes(problem_id)) {
             user.solved_problems.push(problem_id);
-            await User.findByIdAndUpdate(user_id,user);
+            await User.findByIdAndUpdate(user_id, user);
         }
         res.status(200).json(user);
-    }
-    catch(err){
+    } catch (err) {
         res.status(500).json({
             message: err.message,
-            stack: err.stack
-        })
+            stack: err.stack,
+        });
     }
-}
+};
 
 export const register_user = async (req, res, next) => {
     const { password, email } = req.body;
@@ -100,8 +122,8 @@ export const login_user = async (req, res, next) => {
             return next(create_error(404, "user not found"));
         }
 
-        const isPasswordValid = await bcrypt.compare(password,user.password);
-        console.log(isPasswordValid)
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        console.log(isPasswordValid);
         if (!isPasswordValid) {
             return next(create_error(404, "invalid username or password"));
         }
@@ -123,38 +145,35 @@ export const login_user = async (req, res, next) => {
 
 export const verify_token = (req, res, next) => {
     const token = req.header("Authorization").replace("Bearer ", "");
-
     if (!token) {
         return res.status(401).json({ message: "no token provided" });
     }
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.query.user_id= decoded.user_id;
+        req.user = { user_id: decoded.user_id };
         next();
     } catch (err) {
         return next(create_error(401, "invalid token"));
     }
 };
 
-export const get_user_id = async(req,res,next)=>{
+export const get_user_id = async (req, res, next) => {
     const token = req.header("Authorization").replace("Bearer ", "");
-    console.log(token)
     if (!token) {
         return res.status(401).json({ message: "no token provided" });
     }
+
     try {
         const decoded_id = jwt.verify(token, process.env.JWT_SECRET);
-        console.log(decoded_id);
         const user = await User.findById(decoded_id.user_id);
-        console.log(user);
-        if(!user){
-            res.status(404).json({message: "no such user"});
+        if (!user) {
+            res.status(404).json({ message: "no such user" });
         }
         return res.status(200).json({
-            user_id: user._id
-        })
+            user_id: user._id,
+        });
     } catch (err) {
-        return next(create_error(401, err.message));
+        next(create_error(401, err.message));
     }
-}
+};
