@@ -144,7 +144,12 @@ export const login_user = async (req, res, next) => {
 };
 
 export const verify_token = (req, res, next) => {
-    const token = req.header("Authorization").replace("Bearer ", "");
+    let token = req.header("Authorization");
+    if (!token) {
+        return res.status(401).json({ message: "no token provided" });
+    }
+
+    token = token.replace("Bearer ", "");
     if (!token) {
         return res.status(401).json({ message: "no token provided" });
     }

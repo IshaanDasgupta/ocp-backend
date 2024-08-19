@@ -3,6 +3,7 @@ import { create_error } from "../utils/error.js";
 
 export const list_problems = async (req, res, next) => {
     try {
+        console.log("here");
         const problems = await Problem.find();
         res.status(200).json(problems);
     } catch (error) {
