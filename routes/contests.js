@@ -5,6 +5,7 @@ import {
     get_contest_by_id,
     update_contest,
     delete_contest,
+    register_user,
 } from "../controllers/contests.js";
 import { verify_token } from "../controllers/auth.js";
 
@@ -15,5 +16,6 @@ router.get("/contest/", get_contest_by_id);
 router.post("/", create_contest);
 router.put("/", update_contest);
 router.delete("/", delete_contest);
+router.post("/register",verify_token,register_user);
 
 export default router;

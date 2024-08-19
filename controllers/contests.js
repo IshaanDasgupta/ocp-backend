@@ -38,6 +38,32 @@ export const create_contest = async (req, res, next) => {
         next(error);
     }
 };
+export const register_user = async(req,res,next)=>{
+    try {
+        const {contest_id} = req.body;
+        const contest = await Contest.findById(contest_id);
+        const {user_id} = req.user;
+        if(!contest){
+            res.status(404).jon({
+                message: "No such contest"
+            })
+        }
+        if(contest.registered_users.includes(user_id)){
+            res.status(401).jon({
+                message: "User has already registered"
+            })
+            return;
+        }
+        contest.registered_users.push(user_id);
+        await contest.save();
+
+        res.status(200).json({
+            message: "User is succesfully registered"
+        });
+    } catch (err) {
+        next(err);
+    }
+}
 
 export const update_contest = async (req, res, next) => {
     try {

@@ -12,6 +12,10 @@ export const submission_schema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+        contest_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Contest",
+        },
         code: { type: String, required: true },
         language: {
             type: String,
