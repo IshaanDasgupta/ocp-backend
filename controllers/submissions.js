@@ -74,6 +74,10 @@ export const create_submission = async (req, res, next) => {
         if (type === "submit") {
             const problem = await Problem.findById(problem_id);
 
+            if (!problem) {
+                next(create_error(404, "problem not found"));
+            }
+
             const test_cases = [];
             problem.testcases.forEach((testcase) => {
                 test_cases.push({
@@ -98,9 +102,8 @@ export const create_submission = async (req, res, next) => {
 
         const savedSubmission = await submission.save();
 
-        var queue = "submission_requests";
         rabbitMQ_channel.sendToQueue(
-            queue,
+            "submission_requests",
             Buffer.from(
                 JSON.stringify({
                     submission_id: savedSubmission._id,
@@ -136,9 +139,8 @@ export const create_playground_submission = async (req, res, next) => {
 
         const savedSubmission = await playground_submission.save();
 
-        var queue = "submission_requests";
         rabbitMQ_channel.sendToQueue(
-            queue,
+            "submission_requests",
             Buffer.from(
                 JSON.stringify({
                     submission_id: savedSubmission._id,
