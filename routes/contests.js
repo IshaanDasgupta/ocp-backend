@@ -11,8 +11,8 @@ import { verify_token } from "../controllers/auth.js";
 
 const router = Router();
 
-router.get("/", verify_token, get_all_contests);
-router.get("/contest/", get_contest_by_id);
+router.get("/all", verify_token, get_all_contests);
+router.get("/", get_contest_by_id);
 router.post("/", create_contest);
 router.put("/", update_contest);
 router.delete("/", delete_contest);

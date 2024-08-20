@@ -138,9 +138,9 @@ export const create_submission = async (req, res, next) => {
             ...initial_configurations,
         });
         const is_valid_contest_submission = await validate_contest_submission(submission);
-        -console.log(is_valid_contest_submission);
+        console.log(is_valid_contest_submission);
         console.log(submission.contest_id);
-        if(submission.contest_id && !-is_valid_contest_submission){
+        if(submission.contest_id && !is_valid_contest_submission){
             res.status(403).json({
                 sucess: false,
                 message: "not a valid contest submission please ensure that the contest is currently active and and you are registered in it"
