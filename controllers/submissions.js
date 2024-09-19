@@ -6,42 +6,50 @@ import { Playground_Submission } from "../models/Playground_Submission.js";
 import { Contest } from "../models/Contest.js";
 import mongoose from "mongoose";
 
-
-
-export const validate_contest_submission = async(submission)=>{
-     //checking contest is active
-     const current_time = new Date(); // taking current time stamp rather than timestamp of submission as the submissions timestamp can be manipulated
-     const contest = await Contest.findById(submission.contest_id);
-     if(!contest){
+export const validate_contest_submission = async (submission) => {
+    //checking contest is active
+    const current_time = new Date(); // taking current time stamp rather than timestamp of submission as the submissions timestamp can be manipulated
+    const contest = await Contest.findById(submission.contest_id);
+    if (!contest) {
         return false;
-     }
-     const contest_start_time = new Date(contest.start_time);
-     const contest_end_time = new Date(contest_start_time.getTime() + contest.duration * 60000);
+    }
+    const contest_start_time = new Date(contest.start_time);
+    const contest_end_time = new Date(
+        contest_start_time.getTime() + contest.duration * 60000
+    );
 
-    if(!(current_time >= contest.start_time  && current_time <= contest_end_time)){
+    console.log(current_time, contest_start_time, contest_end_time);
+
+    if (
+        !(current_time < contest_start_time || current_time > contest_end_time)
+    ) {
         console.log("contest is not active");
         return false;
     }
 
     //checking problem in contest
-    const is_problem_in_contest = contest.problems.some(p => p.problem.equals(submission.problem_id));
+    const is_problem_in_contest = contest.problems.some((p) =>
+        p.problem.equals(submission.problem_id)
+    );
     console.log(is_problem_in_contest);
-    
-    if(!(is_problem_in_contest)){
+
+    if (!is_problem_in_contest) {
         console.log("problem is not in contest");
         return false;
     }
 
     //checking user registtered in contest
-    const is_user_registered_in_contest = contest.registered_users.some(id => id.equals(submission.user_id));
+    const is_user_registered_in_contest = contest.registered_users.some((id) =>
+        id.equals(submission.user_id)
+    );
 
-    if(!(is_user_registered_in_contest)){
+    if (!is_user_registered_in_contest) {
         console.log("user is not registered in contest");
         return false;
     }
 
     return true;
-}
+};
 export const get_submission = async (req, res, next) => {
     try {
         if (!req.query.submission_id) {
@@ -137,23 +145,31 @@ export const create_submission = async (req, res, next) => {
             ...req.body,
             ...initial_configurations,
         });
-        const is_valid_contest_submission = await validate_contest_submission(submission);
+        const is_valid_contest_submission = await validate_contest_submission(
+            submission
+        );
         console.log(is_valid_contest_submission);
         console.log(submission.contest_id);
-        if(submission.contest_id && !is_valid_contest_submission){
+
+        if (submission.contest_id && !is_valid_contest_submission) {
             res.status(403).json({
                 sucess: false,
-                message: "not a valid contest submission please ensure that the contest is currently active and and you are registered in it"
-            })
+                message:
+                    "not a valid contest submission please ensure that the contest is currently active and and you are registered in it",
+            });
             return;
         }
+        console.log("a valied submission");
+
         const savedSubmission = await submission.save();
         rabbitMQ_channel.sendToQueue(
             "submission_requests",
             Buffer.from(
                 JSON.stringify({
                     submission_id: savedSubmission._id,
-                    type: "problem_submission",
+                    type: submission.contest_id
+                        ? "contest_submission"
+                        : "problem_submission",
                 })
             )
         );

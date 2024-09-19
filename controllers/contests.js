@@ -1,3 +1,4 @@
+import { redisClient } from "../index.js";
 import { Contest } from "../models/Contest.js";
 import { create_error } from "../utils/error.js";
 
@@ -28,6 +29,20 @@ export const get_contest_by_id = async (req, res, next) => {
     }
 };
 
+export const get_leaderboard = async (req, res, next) => {
+    try {
+        const stringfied_leaderboard_data = await redisClient.get(
+            req.query.contest_id
+        );
+
+        const leaderboard_data = await JSON.parse(stringfied_leaderboard_data);
+
+        res.status(200).json(leaderboard_data);
+    } catch (err) {
+        console.log(err);
+    }
+};
+
 export const create_contest = async (req, res, next) => {
     try {
         const contest = new Contest(req.body);
@@ -38,32 +53,32 @@ export const create_contest = async (req, res, next) => {
         next(error);
     }
 };
-export const register_user = async(req,res,next)=>{
+export const register_user = async (req, res, next) => {
     try {
-        const {contest_id} = req.body;
+        const { contest_id } = req.body;
         const contest = await Contest.findById(contest_id);
-        const {user_id} = req.user;
-        if(!contest){
+        const { user_id } = req.user;
+        if (!contest) {
             res.status(404).jon({
-                message: "No such contest"
-            })
+                message: "No such contest",
+            });
         }
-        if(contest.registered_users.includes(user_id)){
+        if (contest.registered_users.includes(user_id)) {
             res.status(401).jon({
-                message: "User has already registered"
-            })
+                message: "User has already registered",
+            });
             return;
         }
         contest.registered_users.push(user_id);
         await contest.save();
 
         res.status(200).json({
-            message: "User is succesfully registered"
+            message: "User is succesfully registered",
         });
     } catch (err) {
         next(err);
     }
-}
+};
 
 export const update_contest = async (req, res, next) => {
     try {

@@ -8,9 +8,12 @@ import contestRoutes from "./routes/contests.js";
 import cors from "cors";
 import mongoose from "mongoose";
 import amqp from "amqplib/callback_api.js";
+import { createClient } from "redis";
 
 dotenv.config();
 const app = express();
+
+export let redisClient;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -36,15 +39,20 @@ app.use((err, req, res, next) => {
     });
 });
 
-const connectToMongoDB = (url) => {
-    return mongoose.connect(url, {});
+const connect_to_mongoDB = async () => {
+    try {
+        mongoose.connect(process.env.MONGODB_URI);
+        console.log("Connected to mongoDB database");
+    } catch (err) {
+        throw err;
+    }
 };
 
 export let rabbitMQ_channel;
 
-const connectToRabbitMQ = (url) => {
+const connect_to_rabbitMQ = () => {
     try {
-        amqp.connect(url, function (error, connection) {
+        amqp.connect(process.env.RABBIT_MQ_URI, function (error, connection) {
             if (error) {
                 throw error;
             }
@@ -69,9 +77,23 @@ const connectToRabbitMQ = (url) => {
     }
 };
 
+const connect_to_redis = async () => {
+    const client = createClient({
+        password: process.env.REDIS_PASSWORD,
+        socket: {
+            host: process.env.REDIS_URI,
+            port: 13987,
+        },
+    });
+
+    redisClient = client;
+    await redisClient.connect();
+    console.log("Connected to redis");
+};
+
 app.listen(8000, async () => {
-    await connectToMongoDB(process.env.MONGODB_URI);
-    await connectToRabbitMQ(process.env.RABBIT_MQ_URI);
+    await connect_to_redis();
+    await connect_to_mongoDB();
+    connect_to_rabbitMQ();
     console.log("Listening on port 8000");
-    console.log("Connected to DB");
 });

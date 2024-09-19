@@ -12,7 +12,8 @@ export const get_user_data = async (req, res, next) => {
         const user_id = req.user.user_id;
         const user = await User.findById(user_id)
             .populate("solved_problems", "title difficulty tags")
-            .populate("submissions", "problem_id language result status");
+            .populate("submissions", "problem_id language result status")
+            .populate("likes", "title");
         const problem_count = {
             Easy: 0,
             Medium: 0,
@@ -177,6 +178,17 @@ export const get_user_id = async (req, res, next) => {
         }
         return res.status(200).json({
             user_id: user._id,
+        });
+    } catch (err) {
+        next(create_error(401, err.message));
+    }
+};
+
+export const get_liked_problems = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.user_id);
+        return res.status(200).json({
+            liked_problems: user.likes,
         });
     } catch (err) {
         next(create_error(401, err.message));
