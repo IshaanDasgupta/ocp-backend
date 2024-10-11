@@ -15,6 +15,7 @@ const app = express();
 
 export let redisClient;
 
+const port = process.env.PORT || 4000;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.json({ type: "application/json" }));
@@ -91,7 +92,7 @@ const connect_to_redis = async () => {
     console.log("Connected to redis");
 };
 
-app.listen(8000, async () => {
+app.listen(port, async () => {
     await connect_to_redis();
     await connect_to_mongoDB();
     connect_to_rabbitMQ();
