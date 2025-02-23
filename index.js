@@ -83,7 +83,7 @@ const connect_to_redis = async () => {
         password: process.env.REDIS_PASSWORD,
         socket: {
             host: process.env.REDIS_URI,
-            port: 13987,
+            port: process.env.REDIS_PORT,
         },
     });
 
