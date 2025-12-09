@@ -26,75 +26,80 @@ app.use("/problem", problemRoutes);
 app.use("/submission", submissionRoutes);
 app.use("/contest", contestRoutes);
 app.get("/healthcheck", (req, res) => {
-    res.status(200).json("healthcheck");
+  res.status(200).json("healthcheck");
 });
 
 app.use((err, req, res, next) => {
-    const errStatus = err.status || 500;
-    const errMessage = err.message || "something went wrong!";
-    return res.status(errStatus).json({
-        sucess: false,
-        status: errStatus,
-        message: errMessage,
-        stack: err.stack,
-    });
+  const errStatus = err.status || 500;
+  const errMessage = err.message || "something went wrong!";
+  return res.status(errStatus).json({
+    sucess: false,
+    status: errStatus,
+    message: errMessage,
+    stack: err.stack,
+  });
 });
 
 const connect_to_mongoDB = async () => {
-    try {
-        mongoose.connect(process.env.MONGODB_URI);
-        console.log("Connected to mongoDB database");
-    } catch (err) {
-        throw err;
-    }
+  try {
+    mongoose.connect(process.env.MONGODB_URI);
+    console.log("Connected to mongoDB database");
+  } catch (err) {
+    throw err;
+  }
 };
 
 export let rabbitMQ_channel;
 
 const connect_to_rabbitMQ = () => {
-    try {
-        amqp.connect(process.env.RABBIT_MQ_URI, function (error, connection) {
-            if (error) {
-                throw error;
-            }
+  try {
+    amqp.connect(process.env.RABBIT_MQ_URI, function (error, connection) {
+      if (error) {
+        throw error;
+      }
 
-            connection.createChannel(function (error, channel) {
-                if (error) {
-                    throw error;
-                }
+      connection.createChannel(function (error, channel) {
+        if (error) {
+          throw error;
+        }
 
-                var queue = "submission_requests";
+        var queue = "submission_requests";
 
-                channel.assertQueue(queue, {
-                    durable: false,
-                });
-
-                rabbitMQ_channel = channel;
-            });
+        channel.assertQueue(queue, {
+          durable: false,
         });
-        console.log("Connected to rabbitMQ");
-    } catch (err) {
-        throw err;
-    }
+
+        rabbitMQ_channel = channel;
+      });
+    });
+    console.log("Connected to rabbitMQ");
+  } catch (err) {
+    throw err;
+  }
 };
 
 const connect_to_redis = async () => {
-    const client = createClient({
-        password: process.env.REDIS_PASSWORD,
-        socket: {
-            host: process.env.REDIS_URI,
-            port: process.env.REDIS_PORT
-        },
-    });
+  const client = createClient({
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+      host: process.env.REDIS_URI,
+      port: process.env.REDIS_PORT,
+    },
+  });
 
-    redisClient = client;
-    await redisClient.connect();
-    console.log("Connected to redis");
+  redisClient = client;
+  await redisClient.connect();
+  console.log("Connected to redis");
 };
 
 app.listen(port, async () => {
+  try {
     await connect_to_redis();
     await connect_to_mongoDB();
     connect_to_rabbitMQ();
+  } catch (error) {
+    console.log(error);
+  } finally {
     console.log("Listening on port 8000");
+  }
 });
