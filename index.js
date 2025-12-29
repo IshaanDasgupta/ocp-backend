@@ -94,9 +94,9 @@ const connect_to_redis = async () => {
 
 app.listen(port, async () => {
   try {
-    await connect_to_redis();
     await connect_to_mongoDB();
-    connect_to_rabbitMQ();
+    await connect_to_rabbitMQ();
+    connect_to_redis();
   } catch (error) {
     console.log(error);
   } finally {
