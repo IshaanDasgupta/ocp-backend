@@ -53,25 +53,31 @@ export let rabbitMQ_channel;
 
 const connect_to_rabbitMQ = () => {
   try {
-    amqp.connect(process.env.RABBIT_MQ_URI, function (error, connection) {
-      if (error) {
-        throw error;
-      }
-
-      connection.createChannel(function (error, channel) {
+    amqp.connect(
+      process.env.RABBIT_MQ_URI,
+      {
+        heartbeat: 60,
+      },
+      function (error, connection) {
         if (error) {
           throw error;
         }
 
-        var queue = "submission_requests";
+        connection.createChannel(function (error, channel) {
+          if (error) {
+            throw error;
+          }
 
-        channel.assertQueue(queue, {
-          durable: false,
+          var queue = "submission_requests";
+
+          channel.assertQueue(queue, {
+            durable: false,
+          });
+
+          rabbitMQ_channel = channel;
         });
-
-        rabbitMQ_channel = channel;
-      });
-    });
+      }
+    );
     console.log("Connected to rabbitMQ");
   } catch (err) {
     throw err;
@@ -84,7 +90,9 @@ const connect_to_redis = async () => {
     socket: {
       host: process.env.REDIS_URI,
       port: process.env.REDIS_PORT,
+      heartbeatInterval: 60000,
     },
+    heartbeatInterval: 60000,
   });
 
   redisClient = client;
